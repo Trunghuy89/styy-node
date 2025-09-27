@@ -33,3 +33,4 @@ app.use("/api/people", peopleRouter);
 app.listen(PORT, () => {
   console.log(`✅ Server is running at http://localhost:${PORT}`);
 });
+Product.find().populate("category_id");
