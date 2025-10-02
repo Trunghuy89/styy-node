@@ -1,73 +1,77 @@
-// src/controllers/post.js
-let posts = [
-  { id: 1, title: "NodeJS cơ bản", content: "Học NodeJS từ đầu" },
-  { id: 2, title: "Express nâng cao", content: "Middleware, Router..." }
-];
+import Post from "../models/Post.js"; // Đã sửa đường dẫn/case để tránh lỗi
 
-// GET /api/posts?search=keyword
-export function getPosts(req, res) {
+// Các hàm controller không cần import Request, Response vì chúng có sẵn trong Node/Express.
+
+// 1. GET ALL POSTS (Lấy danh sách, có thể dùng để tìm kiếm)
+export const getAllPosts = async (req, res) => {
   try {
-    const { search } = req.query;
-    if (posts.length === 0) {
-      return res.status(404).json({ message: "Không có bài viết nào." });
-    }
-
-    if (search) {
-      const keyword = search.toLowerCase();
-      const filtered = posts.filter(p =>
-        p.title.toLowerCase().includes(keyword)
-      );
-      return res.json(filtered); // nếu không tìm thấy => []
-    }
-
-    return res.json(posts);
+    const posts = await Post.find({});
+    res.status(200).json(posts);
   } catch (err) {
-    return res.status(500).json({ message: "Lỗi server", error: err.message });
+    res.status(500).json({ message: "Lỗi Server khi lấy tất cả bài viết", error: err.message });
   }
-}
+};
 
-// GET /api/posts/:id
-export function getPostById(req, res) {
-  const id = Number(req.params.id);
-  const post = posts.find(p => p.id === id);
-  if (!post) return res.status(404).json({ message: "Không tìm thấy bài viết" });
-  res.json(post);
-}
+// 2. GET ONE POST VÀ TĂNG LƯỢT CLICK
+export const getPost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
 
-// POST /api/posts
-export function addPost(req, res) {
-  const { title, content } = req.body;
-  if (!title || !content)
-    return res.status(400).json({ message: "Thiếu title hoặc content" });
+    if (!post) {
+      return res.status(404).json({ message: "Không tìm thấy bài viết" });
+    }
 
-  const newPost = {
-    id: posts.length ? posts[posts.length - 1].id + 1 : 1,
-    title,
-    content
-  };
-  posts.push(newPost);
-  res.status(201).json(newPost);
-}
+    // LOGIC TĂNG LƯỢT CLICK
+    post.clickCount += 1;
+    await post.save();
 
-// PUT /api/posts/:id
-export function updatePost(req, res) {
-  const id = Number(req.params.id);
-  const { title, content } = req.body;
-  const index = posts.findIndex(p => p.id === id);
-  if (index === -1)
-    return res.status(404).json({ message: "Không tìm thấy bài viết" });
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi Server khi lấy chi tiết bài viết", error: err.message });
+  }
+};
 
-  posts[index] = { ...posts[index], title, content };
-  res.json(posts[index]);
-}
+// 3. CREATE NEW POST (THÊM MỚI)
+export const createPost = async (req, res) => {
+  try {
+    // req.body chứa { title: "...", content: "..." }
+    const newPost = new Post(req.body);
+    const savedPost = await newPost.save();
+    res.status(201).json(savedPost); // 201 Created
+  } catch (err) {
+    // 400 Bad Request nếu thiếu trường required
+    res.status(400).json({ message: "Tạo bài viết thất bại", error: err.message });
+  }
+};
 
-// DELETE /api/posts/:id
-export function deletePost(req, res) {
-  const id = Number(req.params.id);
-  const index = posts.findIndex(p => p.id === id);
-  if (index === -1)
-    return res.status(404).json({ message: "Không tìm thấy bài viết" });
+// 4. UPDATE POST (SỬA)
+export const updatePost = async (req, res) => {
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body }, // Cập nhật các trường gửi lên
+      { new: true, runValidators: true } // Trả về document mới, kiểm tra rules
+    );
 
-  const removed = posts.splice(index, 1);
-  res.json({ message: "Đã xóa bài viết", deleted: removed[0] });
-}
+    if (!updatedPost) {
+      return res.status(404).json({ message: "Không tìm thấy bài viết để cập nhật" });
+    }
+    res.status(200).json(updatedPost);
+  } catch (err) {
+    res.status(400).json({ message: "Cập nhật bài viết thất bại", error: err.message });
+  }
+};
+
+// 5. DELETE POST (XÓA)
+export const deletePost = async (req, res) => {
+  try {
+    const result = await Post.findByIdAndDelete(req.params.id);
+
+    if (!result) {
+      return res.status(404).json({ message: "Không tìm thấy bài viết để xóa" });
+    }
+    res.status(200).json({ message: "Xóa bài viết thành công" });
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi Server khi xóa bài viết", error: err.message });
+  }
+};
