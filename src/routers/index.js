@@ -1,14 +1,16 @@
 import { Router } from "express";
-import authorRouter from "./author.js"; 
-import userRouter from "./user.js"; // Import Router cho tính năng User/Auth
+import authorRouter from "./author.js";
+import userRouter from "./user.js";
 
 const rootRouter = Router();
 
-// Gắn Author API vào tiền tố /api/authors
-rootRouter.use('/authors', authorRouter); 
+// Gắn các route con
+rootRouter.use("/authors", authorRouter);
+rootRouter.use("/auth", userRouter);
 
-// Gắn User Auth API vào tiền tố /api/auth
-// Ví dụ: Đăng ký sẽ là POST /api/auth/register
-rootRouter.use('/auth', userRouter); 
+// Route kiểm tra hoạt động
+rootRouter.get("/", (req, res) => {
+  res.json({ message: "🌐 Root route hoạt động!" });
+});
 
-export default rootRouter;
+export default rootRouter; // ⚠️ Cực kỳ quan trọng
