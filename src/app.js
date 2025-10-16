@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import mongoose from "mongoose";
-import rootRouter from "./routes/index.js"; // ✅ import router gốc
+import rootRouter from "./routers/index.js"; // 👈 đúng đường dẫn
 
 const app = express();
 const PORT = 3000;
@@ -27,8 +27,7 @@ app.get("/", (req, res) => {
   res.json({
     message: "🚀 Server đang hoạt động!",
     api: {
-      authors: `http://localhost:${PORT}/api/authors`,
-      users: `http://localhost:${PORT}/api/auth`,
+      auth: `http://localhost:${PORT}/api/auth`,
     },
   });
 });

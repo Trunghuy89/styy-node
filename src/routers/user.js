@@ -1,9 +1,12 @@
-import { Router } from "express";
+import express from "express";
+import { signup, login } from "../controllers/auth.controller.js";
 
-const router = Router();
+const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({ message: "👤 User route hoạt động!" });
-});
+// API đăng ký
+router.post("/signup", signup);
+
+// API đăng nhập
+router.post("/login", login);
 
 export default router;

@@ -1,16 +1,8 @@
-import { Router } from "express";
-import authorRouter from "./author.js";
-import userRouter from "./user.js";
+import express from "express";
+import userRouter from "./user.js"; // ✅ import đúng file router, KHÔNG phải model
 
-const rootRouter = Router();
+const router = express.Router();
 
-// Gắn các route con
-rootRouter.use("/authors", authorRouter);
-rootRouter.use("/auth", userRouter);
+router.use("/auth", userRouter); // ✅ /api/auth/signup, /api/auth/login
 
-// Route kiểm tra hoạt động
-rootRouter.get("/", (req, res) => {
-  res.json({ message: "🌐 Root route hoạt động!" });
-});
-
-export default rootRouter; // ⚠️ Cực kỳ quan trọng
+export default router;
